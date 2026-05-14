@@ -1,0 +1,69 @@
+---
+import { storyblokEditable, useStoryblokApi } from '@storyblok/astro';
+const { blok } = Astro.props;
+
+let article = null;
+if (blok.article) {
+	const sb = useStoryblokApi();
+	const id = typeof blok.article === 'string' ? blok.article : blok.article.id;
+	if (id) {
+		const { data } = await sb.get(`cdn/stories/${id}`, {
+			find_by: 'uuid',
+			version: 'draft',
+		});
+		article = data?.story ?? null;
+	}
+}
+const c = article?.content;
+const date = article?.first_published_at ?? c?.published_at;
+---
+
+<a class="card" href={article ? `/${article.full_slug}` : '#'} {...storyblokEditable(blok)}>
+	{
+		c?.cover_image?.filename ? (
+			<img class="cover" src={c.cover_image.filename} alt={c.cover_image.alt || ''} />
+		) : (
+			<div class="cover placeholder" />
+		)
+	}
+	<h3>{c?.title || 'Pealkirjata'}</h3>
+	<p class="excerpt">{c?.excerpt || ''}</p>
+	<div class="meta">
+		<span>{date ? new Date(date).toLocaleDateString('et-EE') : ''}</span>
+		{c?.author_name && <><span>·</span><span>{c.author_name}</span></>}
+	</div>
+</a>
+
+<style>
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+		padding: var(--space-md);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		color: inherit;
+	}
+	.cover {
+		aspect-ratio: 16 / 9;
+		width: 100%;
+		object-fit: cover;
+		border-radius: var(--radius-sm);
+	}
+	.cover.placeholder {
+		background: var(--color-accent);
+	}
+	h3 {
+		font-size: var(--font-size-h3);
+		font-weight: 600;
+	}
+	.excerpt {
+		color: var(--color-text-muted);
+	}
+	.meta {
+		display: flex;
+		gap: var(--space-sm);
+		font-size: var(--font-size-body);
+		color: var(--color-text-muted);
+	}
+</style>

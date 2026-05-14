@@ -1,0 +1,25 @@
+---
+import { storyblokEditable } from '@storyblok/astro';
+const { blok } = Astro.props;
+---
+
+<div class="fallback" {...storyblokEditable(blok)}>
+	<strong>⚠ Tundmatu blok:</strong> <code>{blok.component}</code>
+	<p>Lisa selle bloki komponent <code>src/storyblok/</code> kausta ja registreeri see <code>astro.config.mjs</code> failis.</p>
+</div>
+
+<style>
+	.fallback {
+		padding: var(--space-md);
+		margin: var(--space-sm) 0;
+		background: #fff4e5;
+		border: 1px dashed #f0a040;
+		border-radius: var(--radius-sm);
+		font-size: 14px;
+	}
+	.fallback code {
+		background: rgba(0, 0, 0, 0.08);
+		padding: 2px 6px;
+		border-radius: 3px;
+	}
+</style>

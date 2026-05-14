@@ -1,0 +1,56 @@
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro';
+const { blok, content } = Astro.props;
+const richtext = blok?.content ?? content;
+const html = richtext ? renderRichText(richtext) : '';
+---
+
+<div class="richtext" {...(blok ? storyblokEditable(blok) : {})} set:html={html} />
+
+<style>
+	.richtext {
+		max-width: var(--content-width);
+		margin: 0 auto;
+		padding: var(--space-lg);
+	}
+	.richtext :global(h2) {
+		font-size: var(--font-size-h2);
+		font-weight: 700;
+		margin-top: var(--space-lg);
+		margin-bottom: var(--space-md);
+	}
+	.richtext :global(h3) {
+		font-size: var(--font-size-h3);
+		font-weight: 600;
+		margin-top: var(--space-md);
+		margin-bottom: var(--space-sm);
+	}
+	.richtext :global(p) {
+		margin-bottom: var(--space-md);
+	}
+	.richtext :global(blockquote) {
+		margin: var(--space-md) 0;
+		padding: var(--space-md);
+		background: var(--color-surface);
+		border-radius: var(--radius-sm);
+		font-style: italic;
+	}
+	.richtext :global(a) {
+		color: var(--color-accent);
+		text-decoration: underline;
+	}
+	.richtext :global(img) {
+		border-radius: var(--radius-md);
+		margin: var(--space-md) 0;
+	}
+	.richtext :global(ul), .richtext :global(ol) {
+		padding-left: var(--space-lg);
+		margin-bottom: var(--space-md);
+	}
+	.richtext :global(code) {
+		background: var(--color-surface);
+		padding: 2px 6px;
+		border-radius: var(--radius-sm);
+		font-size: 0.9em;
+	}
+</style>

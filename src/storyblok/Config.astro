@@ -1,0 +1,36 @@
+---
+import { storyblokEditable } from '@storyblok/astro';
+const { blok } = Astro.props;
+---
+
+<div class="config-placeholder" {...storyblokEditable(blok)}>
+	<h2>⚙️ Config story</h2>
+	<p>Seda story-t kasutatakse globaalselt — selle <code>header</code> ja <code>footer</code> blokid renderdatakse iga saidi lehe peal.</p>
+	<p>Vaata päris saiti aadressil <a href="/">/</a>.</p>
+</div>
+
+<style>
+	.config-placeholder {
+		max-width: var(--content-width);
+		margin: var(--space-2xl) auto;
+		padding: var(--space-lg);
+		background: var(--color-surface);
+		border-radius: var(--radius-md);
+		color: var(--color-text-muted);
+		text-align: center;
+	}
+	.config-placeholder h2 {
+		font-size: var(--font-size-h2);
+		color: var(--color-text);
+		margin-bottom: var(--space-md);
+	}
+	.config-placeholder code {
+		background: rgba(0, 0, 0, 0.05);
+		padding: 2px 6px;
+		border-radius: 3px;
+	}
+	.config-placeholder a {
+		color: var(--color-accent);
+		text-decoration: underline;
+	}
+</style>

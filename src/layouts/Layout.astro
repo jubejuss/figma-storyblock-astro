@@ -1,0 +1,32 @@
+---
+import '../styles/global.css';
+import { useStoryblokApi } from '@storyblok/astro';
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro';
+
+const sb = useStoryblokApi();
+let config = null;
+try {
+	const { data } = await sb.get('cdn/stories/config', { version: 'draft' });
+	config = data?.story?.content ?? null;
+} catch {
+	// config story pole veel loodud — fallback: header/footer ei kuvata
+}
+---
+
+<!doctype html>
+<html lang="et">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Blog</title>
+		<link rel="preconnect" href="https://rsms.me/" />
+		<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+	</head>
+	<body>
+		{config?.header?.map((h) => <StoryblokComponent blok={h} />)}
+		<slot />
+		{config?.footer?.map((f) => <StoryblokComponent blok={f} />)}
+	</body>
+</html>

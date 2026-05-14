@@ -1,0 +1,16 @@
+---
+import { storyblokEditable } from '@storyblok/astro';
+const { blok } = Astro.props;
+---
+
+<footer class="site-footer" {...storyblokEditable(blok)}>
+	<p>{blok.copyright || `© ${new Date().getFullYear()} Haapsalu Kolledž`}</p>
+</footer>
+
+<style>
+	.site-footer {
+		text-align: center;
+		padding: var(--space-md);
+		color: var(--color-text-muted);
+	}
+</style>

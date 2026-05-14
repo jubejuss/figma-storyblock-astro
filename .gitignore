@@ -1,0 +1,30 @@
+# Astro / Node
+node_modules/
+dist/
+.astro/
+.output/
+
+# Deploy artifacts
+.vercel/
+.netlify/
+.wrangler/
+
+# Local Claude state
+.claude/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Storyblok
+.storyblok/
+storyblok.config.local.*

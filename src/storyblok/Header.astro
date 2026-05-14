@@ -1,0 +1,44 @@
+---
+import { storyblokEditable } from '@storyblok/astro';
+const { blok } = Astro.props;
+
+function resolveLink(url) {
+	if (!url) return '#';
+	// External URL (linktype === 'url')
+	if (url.linktype === 'url' || url.url) return url.url || url.cached_url;
+	// Internal story
+	const slug = url.cached_url || '';
+	if (!slug || slug === 'home') return '/';
+	return slug.startsWith('/') ? slug : `/${slug}`;
+}
+---
+
+<header class="site-header" {...storyblokEditable(blok)}>
+	<a href="/" class="logo">{blok.logo_text || 'Blog'}</a>
+	<nav class="nav">
+		{blok.nav_items?.map((item) => <a href={resolveLink(item.url)}>{item.label}</a>)}
+	</nav>
+</header>
+
+<style>
+	.site-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--space-md);
+		max-width: var(--page-width);
+		margin: 0 auto;
+		width: 100%;
+	}
+	.logo {
+		font-size: var(--font-size-h3);
+		font-weight: 700;
+	}
+	.nav {
+		display: flex;
+		gap: var(--space-lg);
+	}
+	.nav a {
+		font-weight: 500;
+	}
+</style>

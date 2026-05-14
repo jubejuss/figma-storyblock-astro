@@ -1,0 +1,44 @@
+---
+import { storyblokEditable, useStoryblokApi } from '@storyblok/astro';
+import ArticleCard from './ArticleCard.astro';
+
+const { blok } = Astro.props;
+
+// blok.articles can be an array of UUIDs (multi-options reference)
+// or empty → fallback: list all articles in blog/ folder.
+let articles = [];
+const sb = useStoryblokApi();
+
+if (blok.articles?.length) {
+	const { data } = await sb.get('cdn/stories', {
+		by_uuids: blok.articles.join(','),
+		version: 'draft',
+	});
+	articles = data?.stories ?? [];
+} else {
+	const { data } = await sb.get('cdn/stories', {
+		starts_with: 'blog/',
+		is_startpage: false,
+		sort_by: 'first_published_at:desc',
+		version: 'draft',
+	});
+	articles = data?.stories ?? [];
+}
+---
+
+<section class="article-list" {...storyblokEditable(blok)}>
+	{articles.map((story) => (
+		<ArticleCard blok={{ article: story.uuid }} />
+	))}
+</section>
+
+<style>
+	.article-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: var(--space-lg);
+		padding: var(--space-lg);
+		max-width: var(--page-width);
+		margin: 0 auto;
+	}
+</style>
