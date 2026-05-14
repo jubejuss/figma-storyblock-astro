@@ -389,6 +389,101 @@ See ongi headless CMS "minus" võrreldes WordPressi automaatse arhiivilehega: ka
 
 ---
 
+## Faas 10 — Cloudflare Workers deploy ✅
+
+Eesmärk: avalik URL õpilastele ja esitluseks.
+
+### 10.1 Git init + GitHub repo
+
+```bash
+git init
+# Per-repo config (mitte globaalne — koolitöö, mitte tööandja)
+git config user.email "jubejuss@tlu.ee"
+git config user.name "Juho Kalberg"
+
+# Lisa failid (NB! .env on gitignore-is, ei satu commitisse)
+git add -A
+git commit -m "Initial commit"
+
+# Public repo GitHubis
+gh repo create figma-storyblock-astro --public --source=. --remote=origin --push
+```
+
+URL: https://github.com/jubejuss/figma-storyblock-astro
+
+### 10.2 Cloudflare adapter
+
+```bash
+npx astro add cloudflare --yes
+# Eemalda kasutamata Vercel/Netlify
+rm vercel.json netlify.toml
+npm uninstall @astrojs/vercel @astrojs/netlify
+```
+
+Astro add lisab `wrangler.jsonc`. Muuda seal `name` (default tuli package.jsonist):
+```jsonc
+"name": "figma-storyblock-astro"
+```
+
+### 10.3 Deploy + secrets
+
+```bash
+# Esimene deploy (loob worker'i + reserveerib subdomain)
+npx wrangler login        # avab brauseri Cloudflare auth'iks
+npx wrangler deploy        # küsib subdomain valikut
+
+# Lisa Storyblok credentials (Cloudflare side encrypted secrets)
+npx wrangler secret put STORYBLOK_DELIVERY_API_TOKEN
+# Paste token kui küsib
+
+npx wrangler secret put STORYBLOK_REGION
+# Sisesta: eu
+```
+
+URL: https://figma-storyblock-astro.jubejuss.workers.dev/
+
+### 10.4 Lõksud Cloudflare deploy'l (palju!)
+
+**Lõks 1: Secret name typo**
+Esimene katse: `wrangler secret put` küsib **secret name esimeseks arg-iks**. Ekslikult anti tokeni väärtus nimena (`wrangler secret put FCyfy5qy...`). Tulemus: secret nime järgi vale, worker ei leia `STORYBLOK_DELIVERY_API_TOKEN`-it → Error 1101 (Worker threw exception).
+
+Parandus: `wrangler secret delete <vale-nimi>` ja siis õigesti `wrangler secret put STORYBLOK_DELIVERY_API_TOKEN`.
+
+**Lõks 2: Per-worker secrets**
+Wrangler.jsonc `name` muutus blueprint-blank-astro → figma-storyblock-astro. Sellega tekkis **uus worker**, vana jäi alles. Secret'id on **per-worker**, uuel pole.
+
+Parandus: pärast worker'i ümbernimetamist seada secret'id uuesti uuele worker'ile.
+
+**Lõks 3: package.json nimi mõjutab KV namespace nime**
+@astrojs/cloudflare adapter loob auto sessioni KV namespace, mille nimi on `<package-name>-session`. Kui rename'isid ainult `wrangler.jsonc`-i mitte `package.json`-i, KV nimi jäi vana → konflikt olemasoleva namespace'iga.
+
+Parandus: rename ka `package.json` `"name"` väli + kustuta `dist/` ja `.wrangler/` cache + rebuild.
+
+**Lõks 4: `wrangler delete --name` ei tööta**
+Wrangler v4-s `delete` kasutab positsioneerimist, mitte `--name` flag'i. Õige: `wrangler delete blueprint-blank-astro`. Vale `--name` flag'iga: ignoreeritakse JA Wrangler võib kustutada CURRENT worker'i (`wrangler.jsonc`-ist), mis on **figma-storyblock-astro** → tulemus "There is nothing here yet".
+
+Parandus: kustuta dashboardist (turvalisem) või kasuta positsioonarg-i.
+
+**Lõks 5: dist/ ja .wrangler cache vana nimega**
+Pärast nime muutmist `package.json`-is, vana build (`dist/`) ja Wrangler-i lokaalne cache (`.wrangler/`) sisaldasid endiselt vana nime. Deploy proovis luua vana nimega KV → konflikt.
+
+Parandus:
+```bash
+rm -rf dist .wrangler
+npm run build
+npx wrangler deploy
+```
+
+### 10.5 Visual Editor preview URL — uuenda
+
+Storyblok → **Settings → Visual Editor → Preview URLs** → lisa Cloudflare URL kõrvuti localhost'iga:
+- `https://localhost:4322/` (arendus)
+- `https://figma-storyblock-astro.jubejuss.workers.dev/` (produktsioon)
+
+Sisuhaldaja saab valida, kus preview avada.
+
+---
+
 ## Õpitud lõksud kokkuvõte
 
 | # | Lõks | Põhjus | Parandus |
@@ -406,6 +501,11 @@ See ongi headless CMS "minus" võrreldes WordPressi automaatse arhiivilehega: ka
 | 11 | `/config` URL kuvas tundmatu blokki | Visual Editor avab config story-t iframe'is | Lisada `Config.astro` placeholder + registreerida |
 | 12 | Kausta URL `/blog/` andis 404 | Folder pole iseseisev story | Loo eraldi `page` story (slug `postitused`), sisaldab `article_list` |
 | 13 | Storyblok keelas slug `blog` dubleerimist | Folder sama slug-iga juba olemas | Kasuta alternatiivset slug-i (`postitused`) ja uuenda nav linke |
+| 14 | Worker Error 1101 — secret name vale | `wrangler secret put FCyfy...` (token *väärtus* nimena) | `wrangler secret put STORYBLOK_DELIVERY_API_TOKEN` (õige nimi) |
+| 15 | Uus worker pärast rename'i, vana secret'id | Secret'id on per-worker | Sea secret'id uuele worker'ile uuesti |
+| 16 | KV namespace konflikt deploy'l | `package.json` `"name"` jäi vana, KV nimi = `<name>-session` | Uuenda ka `package.json` + rebuild |
+| 17 | `wrangler delete --name X` kustutas vale worker'i | V4-s `delete` on positsiooniline arg, `--name` ignoreeritakse | Kasuta `wrangler delete <nimi>` või dashboard |
+| 18 | "There is nothing here yet" pärast deploy't | Worker oli kustutatud, subdomain reserveeritud | Re-deploy + sea secret'id uuesti |
 
 ---
 
