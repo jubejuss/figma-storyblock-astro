@@ -2,13 +2,10 @@ import { defineConfig } from 'astro/config';
 import { storyblok } from '@storyblok/astro';
 import { loadEnv } from 'vite';
 import mkcert from 'vite-plugin-mkcert';
-
-import vercel from '@astrojs/vercel';
-import netlify from '@astrojs/netlify';
+import cloudflare from '@astrojs/cloudflare';
 
 const env = loadEnv(import.meta.env.MODE, process.cwd(), '');
 const {
-	NETLIFY,
 	STORYBLOK_DELIVERY_API_TOKEN,
 	STORYBLOK_API_BASE_URL,
 	STORYBLOK_REGION,
@@ -42,6 +39,6 @@ export default defineConfig({
 		}),
 	],
 	output: 'server',
-	adapter: NETLIFY ? netlify() : vercel(),
+	adapter: cloudflare(),
 	vite: { plugins: [mkcert()] },
 });
