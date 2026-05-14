@@ -513,10 +513,11 @@ Sisuhaldaja saab valida, kus preview avada.
 
 - [ ] Live Preview test Storybloki Visual Editori kaudu (logo_text muuda → koheselt iframe'is näha)
 - [ ] Lisada `og:image`, `meta description` (kasuta `excerpt` välja)
-- [ ] SSR build test: `npm run build` → kontrolli, et adapter (Vercel) töötab
-- [ ] Deploy Vercelisse / Netlifysse
+- [ ] Custom domain Cloudflare'is (nt `blog.haapsalu.tlu.ee` → `workers.dev` URL'i asemel)
+- [ ] GitHub → Cloudflare auto-deploy (Workers Builds — iga push triggerib build)
 - [ ] Figma → Storyblok plugini katsetus (kas pluginast loodud schema kattub meie käsitsi loodud omaga?)
 - [ ] Sisutüübid keelte jaoks (i18n), kui demos kasvab
+- [ ] Storyblok webhook → Cloudflare cache invalidation (kui sisu muutub)
 
 ---
 

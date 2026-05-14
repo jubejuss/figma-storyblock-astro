@@ -2,120 +2,137 @@
 
 Õppedemo Haapsalu Kolledži sisuhaldussüsteemide kursusele. Eesmärk: näidata terviklikku **headless CMS töövoogu** disainerist arendajani.
 
-## Tehnoloogiad
+## Tehnoloogiad (kontrollitud, töötab)
 
-- **Disain:** Figma (fail "Storyblock", key `dTwBlwL7yFMJZe5STUrEVP`)
-- **Sild:** Storyblok ametlik Figma plugin ([Figma Community](https://www.figma.com/community/plugin/1506962248112177026/figma-to-storyblok))
-- **CMS:** Storyblok (Visual Editor + REST/CDN API)
-- **Frontend:** Astro 6 + `@storyblok/astro` v6.2.0+ (Node 22.13+)
-- **Stiil:** Tailwind v4 (`@tailwindcss/vite`, `@import "tailwindcss"`)
+| Roll | Vahend | Versioon |
+|------|--------|----------|
+| Disain | Figma | – |
+| CMS | Storyblok (Community plan, EU region) | – |
+| Frontend | Astro | 6.0.8 |
+| Storyblok integratsioon | `@storyblok/astro` | 9.0.0 |
+| Cloud deploy | Cloudflare Workers via `@astrojs/cloudflare` | 13.5+ |
+| Lokaalne HTTPS | `vite-plugin-mkcert` | – |
+| Stiil | **Plain CSS muutujad** (`src/styles/global.css`) — **mitte Tailwind** | – |
 
-## Projekti seis
+## Projekti seis (kõik faasid valmis)
 
-**Faas:** disain (Figma).
-- [ ] Figma fail "Storyblock" — komponendid + 2 lehekompositsiooni
-- [ ] Figma → Storyblok plugin sünk
-- [ ] Storybloki content type `article` käsitsi seadistamine (vaikimisi tuleb Nestable, peab muutma)
-- [ ] Astro projekt scaffolditud
-- [ ] `@storyblok/astro` integratsioon + bridge
-- [ ] Live Preview seadistus
+- ✅ Figma fail "Storyblock" (3 lehte, 6 komponenti, 17 tokens)
+- ✅ Storyblok ruum (3 content types: `article`, `page`, `config` + 6 nestable bloki)
+- ✅ Astro projekt jookseb `https://localhost:4322/` (HTTPS, mkcert sert)
+- ✅ Cloud URL: https://figma-storyblock-astro.jubejuss.workers.dev/
+- ✅ GitHub repo: https://github.com/jubejuss/figma-storyblock-astro
+- ✅ Live Preview / Visual Editor
 
 ## Minimaalne MVP scope
 
-**Lehed (2):** blog index (=esileht `/`), article page `/blog/[...slug]`.
+**Lehed (3 URL'i):**
+- `/` — esileht (`home` story), kuvab ArticleList
+- `/postitused/` — eraldi index leht (story slug=`postitused`), sama ArticleList
+- `/blog/<slug>` — üksikartikkel (`article` content type, kausta `blog/` sees)
 
-**Storybloki content type (1):** `article`
-| Väli | Tüüp |
+**Storybloki content types (3):**
+
+| Tüüp | Roll |
 |------|------|
-| `title` | text |
-| `slug` | auto |
-| `published_at` | datetime |
-| `cover_image` | asset |
-| `excerpt` | textarea |
-| `body` | richtext |
-| `author_name` | text |
+| `article` | Sisuüksus: title, published_at, cover_image, excerpt, body (richtext), author_name |
+| `page` | Konteiner (üks väli `body` Blocks) — home + postitused |
+| `config` | Singleton — header + footer globaalselt, fetchitakse Layout.astros |
 
-**Komponendid (6):** `Header`, `Footer`, `ArticleCard`, `ArticleList`, `ArticleHeader`, `RichText`.
+**Nestable blokid (6):** `header`, `nav_link`, `footer`, `article_card`, `article_list`, `rich_text`.
 
-**Design tokens (~20):** vt `docs/PLAN.md`.
+**Astro komponendid (9 `.astro` faili):**
+`src/storyblok/`: Page, Article, Header, Footer, ArticleCard, ArticleList, ArticleHeader, RichText, Config + Fallback.
 
-Vt täielikku spec: [`docs/PLAN.md`](docs/PLAN.md).
-Storyblok space loomine (algajatele): [`docs/STORYBLOK-SETUP.md`](docs/STORYBLOK-SETUP.md).
-Schema seadistus pärast Developer Quickstart-i: [`docs/STORYBLOK-SCHEMA.md`](docs/STORYBLOK-SCHEMA.md).
+**Design tokens (~20):** plain CSS muutujad `src/styles/global.css`-s, sünk Figma `Tokens` lehega.
 
-## Töövoog Figmas (kriitilised reeglid)
+Vt täielikku spec: [`docs/PLAN.md`](docs/PLAN.md).  
+Storybloki UI seadistus: [`docs/STORYBLOK-SCHEMA.md`](docs/STORYBLOK-SCHEMA.md).  
+Õpilogi (kuidas tehti, lõksudega): [`docs/Kuidas-tegin.md`](docs/Kuidas-tegin.md).
 
-1. **Kasuta `Frame`-i, MITTE `Group`-i.** Plugin ei tunne `Group`-i.
+## Töövoog Figmas (kriitilised reeglid, kui ehitad uuesti)
+
+1. **Kasuta `Frame`-i, MITTE `Group`-i.**
 2. **Nimed PascalCase + semantilised:** `ArticleCard`, mitte `Frame 42`.
-3. **Auto-layout kõikjal** — see saab Storybloki nestable struktuuriks.
-4. **Üks loogiline komponent = üks Figma component.** Ära paki kümmet asja ühte raami.
-5. **Tokens eraldi** — Figma `Variables` ei sünkroniseeru põhipluginaga. Selleks on [`storyblok/design-tokens-figma-plugin`](https://github.com/storyblok/design-tokens-figma-plugin).
+3. **Auto-layout kõikjal.**
+4. **Üks loogiline komponent = üks Figma component.**
+5. **Variables eraldi lehel** — kasuta tokenitele Variables (mitte raw väärtused stiilides).
 
-## Storybloki seadistus pärast plugini sünki
+## Storybloki UI — kriitilised lõksud
 
-- Plugin loob KÕIK bloks-id Nestable-na. **`article` tuleb käsitsi muuta Content Type'iks** (Block Library → Edit → "Is root").
-- Kontrolli väljatüüpe — plugin paneb sageli kõik tekstiks; rikatekst, asset, datetime tuleb käsitsi seada.
-- `body` peab olema **richtext** ja `cover_image` **asset** tüüpi.
+- ⚠ **`page` skeemat KOGEMATA muudetud**: kõige sagedasem viga. Kui hakkad `article` Content Type'i looma, **ÄRA AVA** olemasolevat `page` blokki. Tee uus blokk pluss "+ New Block" nupust.
+- ⚠ **Plugin/blueprint teeb kõik Nestable-na** → Content Type tuleb käsitsi seada (vali ⦿ Content Type kui blokki teed).
+- ⚠ **Folder Default content type** unustatakse. Loo `blog` kaust → seadista default = `article`.
+- ⚠ **Nav_link Internal Link** ei luba kausta valida → vaheta link tüüp **URL**-iks ja sisesta käsitsi.
 
-## Astro setup (kui jõuame)
+## Astro projekti seadistus (kui ehitad nullist)
 
 ```bash
+# Tee 1: Storybloki Developer Quickstart (soovitav, kiireim)
+# 1. Loo Storyblok space, vali Developer mode
+# 2. Käivita Storybloki antud käsk:
+npx storyblok@latest create --token <SPACE_TOKEN>
+# 3. Vali Astro, vali kataloog (nt `./` või alamkataloog)
+
+# Tee 2: nullist
 npm create astro@latest .
 npm install @storyblok/astro
+npx astro add cloudflare
 ```
 
-`astro.config.mjs`:
-```js
-import storyblok from '@storyblok/astro';
+`astro.config.mjs` toimiv konfiguratsioon (vt projekti juur):
+- `bridge: true` — Live Preview tugi
+- `enableFallbackComponent: true` + `customFallbackComponent: 'storyblok/Fallback'` — v9 süntaks, **NB!** vanemates dokkides on `fallbackComponent: '...'` — see ei tööta v9-s
+- `output: 'server'` (SSR, vajalik draft sisu nägemiseks Visual Editor'is)
+- `adapter: cloudflare()` (Workers deploy)
 
-export default defineConfig({
-  integrations: [storyblok({
-    accessToken: import.meta.env.STORYBLOK_DELIVERY_API_TOKEN,
-    components: {
-      article: 'storyblok/Article',
-      header: 'storyblok/Header',
-      footer: 'storyblok/Footer',
-      // ...
-    },
-    bridge: true,
-  })],
-});
-```
-
-**Live Preview nõuded:**
-- `bridge: true` integratsioonis
-- `{...storyblokEditable(blok)}` iga komponendi juurelemendil
-- Draft sisu nägemiseks SSR — `export const prerender = false` lehe peal
-
-## Kataloogi konventsioonid
-
-- **Üks** dünaamiline route fail per "type" — kasuta `[type]/[slug].astro` mustrit, **mitte** eraldi `uudised/[slug].astro` ja `sundmused/[slug].astro` (vt globaalne CLAUDE.md — Vite chunk collision `@tailwindcss/node`-iga).
-- WP slugid (kui tuleb segahybrid) võivad olla mitte-ASCII — guarda `getStaticPaths` `/^[\x20-\x7E]+$/`-ga (kuigi Storyblok ise teeb ASCII slugid).
-
-## Käsud
+## Cloudflare deploy
 
 ```bash
-# Figma plugin (käsitsi)
-# Figma → Plugins → "Figma to Storyblok" → autenti → vali Frame'id → Sync
+npx wrangler login
+npx wrangler deploy
 
-# Astro dev (kui scaffolditud)
-npm run dev
-
-# Storyblok CLI (TS tüübid)
-npx storyblok pull-components --space <SPACE_ID>
+# Secrets (Cloudflare side, NB! mitte segi ajada secret nime ja väärtusega)
+npx wrangler secret put STORYBLOK_DELIVERY_API_TOKEN   # sisesta token kui küsib
+npx wrangler secret put STORYBLOK_REGION                # sisesta: eu
 ```
 
-## Levinumad lõksud
+Vt detailset Cloudflare lõksude loendit: [`docs/Kuidas-tegin.md`](docs/Kuidas-tegin.md#faas-10--cloudflare-workers-deploy-) (5 levinud lõksu).
 
-- **Plugin teeb kõik Nestable-ks** → Content Type tuleb käsitsi seada
-- **Live Preview ei tööta** → `bridge: true` + `storyblokEditable` puudu
-- **Draft sisu ei näe Astros** → `prerender = false` puudu või access token on `published`-only
-- **Pildid ei lae** → kontrolli, et asset on tõesti Storybloki Asset Library's, mitte ainult väljal
-- **Richtext renderdab `[object Object]`** → vaja `renderRichText()` `@storyblok/astro/utils`-ist
+## Käsud arenduses
+
+```bash
+npm run dev               # https://localhost:4322/ (HTTPS)
+npm run build             # build dist/ (Cloudflare Workers format)
+npx wrangler deploy       # deploy dist'ist Cloudflare-i
+npx wrangler tail         # live logid produktsioonist (debug)
+npx wrangler secret list  # vaata secret'eid (produktsioonis)
+```
+
+## Konventsioonid
+
+- **Üks** dünaamiline route fail per "type" — `[...slug].astro` katab kõik (home, postitused, blog/*).
+- **CSS:** plain CSS, ei Tailwindit. Tokenid `src/styles/global.css` `:root`-is. Komponentides kasuta `var(--color-text)` jne.
+- **Iga Astro komponent saab `blok` ja optsionaalselt `story` props** + `{...storyblokEditable(blok)}` juurelemendil (Visual Editor).
+- **`.env`** sisaldab `STORYBLOK_DELIVERY_API_TOKEN` ja `STORYBLOK_REGION=eu`. Lokaalses arenduses täidab vite, produktsioonis Cloudflare secrets.
+
+## Levinumad lõksud (terviklik nimekiri õpilogis)
+
+18 lõksu kokku — täielik tabel: [`docs/Kuidas-tegin.md`](docs/Kuidas-tegin.md#õpitud-lõksud-kokkuvõte).
+
+**Top 5, mis enim katkestab arendust:**
+1. `page` skeemat ekslikult muudetud `article`-i loomise käigus
+2. `fallbackComponent: 'X'` ei tööta v9-s — vaja `enableFallbackComponent: true` + `customFallbackComponent`
+3. Cloudflare deploy: secret name typo (token *väärtus* nimena)
+4. KV namespace konflikt (package.json `name` jäi vana → adapter teeb vana nimega KV)
+5. `wrangler delete --name X` v4-s ei tööta, kasuta positsioonarg-i või dashboardit
+
+## Õpilastele
+
+Iga õpilane teeb oma Storyblok konto + space + tokeni. Sammuhaaval juhend on `docs/Kuidas-tegin.md`. Schema seadistus: `docs/STORYBLOK-SCHEMA.md`.
 
 ## Viited
 
-- Storyblok docs: https://www.storyblok.com/docs/guides/astro
-- Bloks concept: https://www.storyblok.com/docs/concepts/blocks
-- Figma plugin tipid: https://www.storyblok.com/mp/optimize-design-figma-to-storyblok-plugin
-- Astro CMS guide: https://docs.astro.build/en/guides/cms/storyblok/
+- Storyblok Astro guide: https://www.storyblok.com/docs/guides/astro
+- Storyblok Blocks: https://www.storyblok.com/docs/concepts/blocks
+- Astro Cloudflare adapter: https://docs.astro.build/en/guides/integrations-guide/cloudflare/
+- Cloudflare Workers Free: https://developers.cloudflare.com/workers/platform/limits/

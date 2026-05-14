@@ -77,7 +77,11 @@ Avage **Content**.
 
 ## 4. Frontend — Astro renderdus [3 min]
 
-Ava brauseris **https://localhost:4322/**.
+Ava brauseris kaks varianti — lokaalne ja pilv:
+- **Lokaalne (dev):** https://localhost:4322/
+- **Cloud (Cloudflare Workers):** https://figma-storyblock-astro.jubejuss.workers.dev/
+
+Mõlemad serveerivad **sama sisu** Storybloki API'st. Pilve-versioon on **SSR Cloudflare Workers'is** (mitte staatiline).
 
 **Näita lehekülgede vahel liikumist:**
 - Avaleht → 3 artiklikaarti
@@ -140,14 +144,17 @@ src/storyblok/
 **Aruteluküsimused:**
 - Millal **ei** valiks headless'i? (väikesed projektid, kus admin on ka arendaja)
 - Mis juhtub, kui CMS sulgub? (sisu on portable JSON, aga UI tuleb uuesti ehitada)
-- Kuidas SEO sõbralik? (SSR/SSG vastutab Astro — vaata `output: 'server'` config'is)
+- Kuidas SEO sõbralik? (SSR/SSG vastutab Astro — `output: 'server'` + Cloudflare Workers serveerib iga päringut)
+- Mis maksab? (Cloudflare Workers Free: 100k päringut päevas; Storyblok Free: 25k API kõnet kuus — demos rohkem kui piisav)
 
 ---
 
 ## Lingid esitluses näitamiseks
 
-- **Sait:** https://localhost:4322/
-- **Storyblok:** https://app.storyblok.com/#/me/spaces/<SPACE_ID>
+- **Sait (lokaalne):** https://localhost:4322/
+- **Sait (cloud):** https://figma-storyblock-astro.jubejuss.workers.dev/
+- **Repo:** https://github.com/jubejuss/figma-storyblock-astro
+- **Storyblok:** https://app.storyblok.com
 - **Figma:** Storyblock fail
 - **Kood:** projekti juur (`src/storyblok/`, `src/layouts/`, `astro.config.mjs`)
 - **Õpilogi:** [`docs/Kuidas-tegin.md`](Kuidas-tegin.md)
@@ -157,7 +164,8 @@ src/storyblok/
 ## Demo-checklist enne esitlust
 
 - [ ] Dev server jookseb: `npm run dev`
+- [ ] Cloud URL töötab (kontrolli `curl -sk <url>` või brauseris)
 - [ ] Storyblokis on sisu publish'itud (mitte ainult Draft)
-- [ ] Brauseri tabid: localhost + Storyblok + Figma kõik avatud
+- [ ] Brauseri tabid: localhost + cloud + Storyblok + Figma + GitHub kõik avatud
 - [ ] Slug `postitused` (mitte `blog`) on kasutuses
-- [ ] Visual Editor preview URL = `https://localhost:4322/`
+- [ ] Visual Editor preview URL = `https://localhost:4322/` JA cloud URL ka lisatud
