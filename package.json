@@ -18,6 +18,6 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.2",
-    "wrangler": "^4.151.3"
+    "wrangler": "^4.156.0"
   }
 }
