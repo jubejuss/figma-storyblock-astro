@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@storyblok/astro": "^10.3.2",
-    "astro": "^7.4.2",
+    "astro": "^7.4.12",
     "vite": "^7.3.7",
     "vite-plugin-mkcert": "^1.17.10"
   },
